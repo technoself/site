@@ -1,1 +1,574 @@
-<h2>THIS IS A TEST</h2>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Performing the Technoself</title>
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+            }
+
+            body {
+                background-color: #ffffff;
+                margin: 0;
+                overflow: hidden;
+                font-family: arial;
+            }
+
+            #blocker {
+
+                position: absolute;
+
+                width: 100%;
+                height: 100%;
+
+                background-color: rgba(0,0,0,0.5);
+
+            }
+
+            #instructions {
+
+                width: 100%;
+                height: 100%;
+
+                display: -webkit-box;
+                display: -moz-box;
+                display: box;
+
+                -webkit-box-orient: horizontal;
+                -moz-box-orient: horizontal;
+                box-orient: horizontal;
+
+                -webkit-box-pack: center;
+                -moz-box-pack: center;
+                box-pack: center;
+
+                -webkit-box-align: center;
+                -moz-box-align: center;
+                box-align: center;
+
+                color: #ffffff;
+                text-align: center;
+
+                cursor: pointer;
+
+            }
+
+        </style>
+    </head>
+    <body>
+        <script src="assets/js/Three.js"></script>
+        <script src="assets/js/cannon.js"></script>
+        <script src="assets/js/PointerLockControls.js"></script>
+        <script type="text/javascript" src="assets/js/MTLLoader.js" ></script>
+		<script type="text/javascript" src="assets/js/OBJMTLLoader.js" ></script>
+        <script src='assets/js/threex.dynamictexture.js'></script>
+        <div id="blocker">
+
+            <div id="instructions">
+                <span style="font-size:40px">Click to play</span>
+                <br />
+                (W,A,S,D = Move, SPACE = Jump, MOUSE = Look, CLICK = Raise/Lower Arm)
+            </div>
+
+        </div>
+
+        <script>
+
+            var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
+
+            var camera, scene, renderer;
+            var geometry, material, mesh;
+            var controls,time = Date.now();
+            
+            var updateFcts	= [];
+            
+            var blocker = document.getElementById( 'blocker' );
+            var instructions = document.getElementById( 'instructions' );
+            
+            var currentHandPos = "Shown";
+            var nextHandPos = "Hidden";
+            
+            var meshes = {};
+            
+            var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+
+            if ( havePointerLock ) {
+
+                var element = document.body;
+
+                var pointerlockchange = function ( event ) {
+
+                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+
+                        controls.enabled = true;
+
+                        blocker.style.display = 'none';
+
+                    } else {
+
+                        controls.enabled = false;
+
+                        blocker.style.display = '-webkit-box';
+                        blocker.style.display = '-moz-box';
+                        blocker.style.display = 'box';
+
+                        instructions.style.display = '';
+
+                    }
+
+                }
+
+                var pointerlockerror = function ( event ) {
+                    instructions.style.display = '';
+                }
+
+                // Hook pointer lock state change events
+                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+
+                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+
+                instructions.addEventListener( 'click', function ( event ) {
+                    instructions.style.display = 'none';
+
+                    // Ask the browser to lock the pointer
+                    element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+
+                    if ( /Firefox/i.test( navigator.userAgent ) ) {
+
+                        var fullscreenchange = function ( event ) {
+
+                            if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+
+                                document.removeEventListener( 'fullscreenchange', fullscreenchange );
+                                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+
+                                element.requestPointerLock();
+                            }
+
+                        }
+
+                        document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+                        document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+
+                        element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+                        element.requestFullscreen();
+
+                    } else {
+
+                        element.requestPointerLock();
+
+                    }
+
+                }, false );
+
+            } else {
+
+                instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
+
+            }
+
+            initCannon();
+            init();
+            animate();
+
+            function initCannon(){
+                // Setup our world
+                world = new CANNON.World();
+                world.quatNormalizeSkip = 0;
+                world.quatNormalizeFast = false;
+
+                var solver = new CANNON.GSSolver();
+
+                world.defaultContactMaterial.contactEquationStiffness = 1e9;
+                world.defaultContactMaterial.contactEquationRelaxation = 4;
+
+                solver.iterations = 7;
+                solver.tolerance = 0.1;
+                var split = true;
+                if (split)
+                    world.solver = new CANNON.SplitSolver(solver);
+                else
+                    world.solver = solver;
+
+                world.gravity.set(0,-20,0);
+                world.broadphase = new CANNON.NaiveBroadphase();
+
+                // Create a slippery material (friction coefficient = 0.0)
+                physicsMaterial = new CANNON.Material("slipperyMaterial");
+                var physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial,
+                                                                        physicsMaterial,
+                                                                        0.0, // friction coefficient
+                                                                        0.3  // restitution
+                                                                        );
+                // We must add the contact materials to the world
+                world.addContactMaterial(physicsContactMaterial);
+
+                // Create a sphere
+                var mass = 5, radius = 1.3;
+                sphereShape = new CANNON.Sphere(radius);
+                sphereBody = new CANNON.Body({ mass: mass });
+                sphereBody.addShape(sphereShape);
+                sphereBody.position.set(0,5,0);
+                sphereBody.linearDamping = 0.9;
+                world.addBody(sphereBody);
+
+                // Create a plane
+                var groundShape = new CANNON.Plane();
+                var groundBody = new CANNON.Body({ mass: 0 });
+                groundBody.addShape(groundShape);
+                groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+                world.addBody(groundBody);
+            }
+
+            function init() {
+                
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+                scene = new THREE.Scene();
+                scene.fog = new THREE.Fog( 0x000000, 0, 500 );
+
+                var ambient = new THREE.AmbientLight( 0x111111 );
+                scene.add( ambient );
+
+                var light1 = new THREE.SpotLight( 0xffffff, 2);
+                light1.position.set( 0, 25, 0 );
+                light1.target.position.set( 0, 0, 0 );
+                if(true){
+                    light1.castShadow = true;
+
+                    light1.shadowCameraNear = 10;
+                    light1.shadowCameraFar = 25;//camera.far;
+                    light1.shadowCameraFov = 112.5;
+
+                    light1.shadowMapBias = 0.1;
+                    light1.shadowMapDarkness = 0.7;
+                    light1.shadowMapWidth = 2*512;
+                    light1.shadowMapHeight = 2*512;
+
+                    //light1.shadowCameraVisible = true;
+                }
+                scene.add( light1 );
+                
+                var geometry = new THREE.PlaneGeometry( 30, 15, 20 );
+                var material = new THREE.MeshPhongMaterial( {color: 0x34548b, side: THREE.DoubleSide} );
+                var plane1 = new THREE.Mesh( geometry, material );
+                var plane2 = new THREE.Mesh( geometry, material );
+                var plane3 = new THREE.Mesh( geometry, material );
+                var plane4 = new THREE.Mesh( geometry, material );
+                
+                plane1.position.z = -15;
+                plane2.position.z = 15;
+                plane3.position.x = -15;
+                plane3.rotation.y = Math.PI/2;
+                plane3.position.y = 7.5;
+                plane4.position.y = 7.5;
+                plane1.position.y = 7.5;
+                plane2.position.y = 7.5;
+                plane4.rotation.y = Math.PI/2;
+                plane4.position.x = 15;
+                scene.add( plane1 );
+                scene.add( plane2 );
+                scene.add( plane3 );
+                scene.add( plane4 );
+                
+                
+                
+                var sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(100, 32, 32),
+                    new THREE.MeshBasicMaterial({
+                        map: THREE.ImageUtils.loadTexture('assets/images/space2.jpg')
+                    })
+                );
+                sphere.scale.x = -1;
+                scene.add(sphere);
+                
+                ////////////////////
+                
+                // prepare loader and load the model
+                var oLoader = new THREE.OBJMTLLoader();
+                oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(object) {
+                    object.position.x = 0.25;
+                    object.position.y = 0;
+                    object.position.z = -0.55;
+                    object.rotation.x = Math.PI
+                    object.rotation.y = -1.5 * Math.PI
+                    object.scale.set(0.1, 0.1, 0.1);
+                    object.traverse( function( node ) {
+                        if ( node instanceof THREE.Mesh ) {
+                            node.geometry.computeVertexNormals(); 
+                            node.material.shininess = 0;
+                        }
+                    });
+                    var pivot = new THREE.Object3D();
+                    pivot.add( object );
+                    camera.add(pivot);
+                    
+                    var dynamicTexture  = new THREEx.DynamicTexture(240,80)
+                	dynamicTexture.context.font	= "bolder 45px Courier New";
+                    
+                    updateFcts.push(function(delta, now){
+                    	// build the text which contains the time
+                    	var present	= new Date()
+                    	var text	= pad(present.getHours(), 2, '0')
+                    		+ ':' + pad(present.getMinutes(), 2, '0')
+                    		+ ':' + pad(present.getSeconds(), 2, '0')
+                    	function pad(n, width, z) {
+                    		z = z || '0';
+                    		n = n + '';
+                    		return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                    	}
+
+                    	// update the text
+                    	dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
+
+                	});
+                    
+                    var geometry = new THREE.PlaneGeometry( 3, 1, 20);
+                    var material = new THREE.MeshBasicMaterial({
+                        map : dynamicTexture.texture
+                    });
+                    var mesh = new THREE.Mesh( geometry, material );
+                    mesh.scale.set(0.0125, 0.0125, 0.0125);
+                    mesh.position.set(0.2, -0.12, -0.29);
+                    mesh.rotation.z = 0.1 * Math.PI;
+                    mesh.rotation.x = -0.1 * Math.PI;
+                    pivot.add( mesh );
+                
+                });
+                ////////////////////
+                
+                controls = new PointerLockControls( camera , sphereBody );
+                scene.add( controls.getObject() );
+
+                // floor
+                geometry = new THREE.PlaneGeometry( 30, 30, 10, 10 );
+                geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+
+                material = new THREE.MeshLambertMaterial( { color: 0x404040 } );
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add( mesh );
+
+                renderer = new THREE.WebGLRenderer();
+                renderer.shadowMapEnabled = true;
+                renderer.shadowMapSoft = true;
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor( scene.fog.color, 1 );
+
+                document.body.appendChild( renderer.domElement );
+
+                window.addEventListener( 'resize', onWindowResize, false );
+
+                // Add boxes
+                material = new THREE.MeshLambertMaterial( { color: 0x111111 } );
+                var halfExtents = new CANNON.Vec3(0.4,0.8,0.2);
+                var boxShape = new CANNON.Box(halfExtents);
+                var boxGeometry = new THREE.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
+                
+                var x = 2;
+                var y = 1.2;
+                var z = 2;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/4);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = -2;
+                var y = 1.2;
+                var z = -2;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/4);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = 2;
+                var y = 1.2;
+                var z = -2;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/-4);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = -2;
+                var y = 1.2;
+                var z = 2;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/-4);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = 0;
+                var y = 1.2;
+                var z = -2.5;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = 0;
+                var y = 1.2;
+                var z = 2.5;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = 2.5;
+                var y = 1.2;
+                var z = 0;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/-2);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+                var x = -2.5;
+                var y = 1.2;
+                var z = 0;
+                var boxBody = new CANNON.Body({ mass: 500 });
+                boxBody.addShape(boxShape);
+                var boxMesh = new THREE.Mesh( boxGeometry, material );
+                world.addBody(boxBody);
+                scene.add(boxMesh);
+                boxBody.position.set(x,y,z);
+                boxBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), Math.PI/-2);
+                boxMesh.position.set(x,y,z);
+                boxMesh.castShadow = true;
+                boxMesh.receiveShadow = true;
+                boxes.push(boxBody);
+                boxMeshes.push(boxMesh);
+                
+            	loadingManager = new THREE.LoadingManager();
+                loadingManager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+                	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+                };
+                loadingManager.onLoad = function () {
+                	console.log( 'Loading complete!');
+                    RESOURCES_LOADED = true;
+                    onResourcesLoaded();
+                };
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+            
+            var dt = 1/60;
+            function animate() {
+                
+                var lastTimeMsec= null;
+            	requestAnimationFrame(function animate(nowMsec) {
+            		// keep looping
+            		requestAnimationFrame( animate );
+                    
+                    if (controls.enabled){
+                        if (currentHandPos == "Shown" && nextHandPos == "Hidden" && camera.children[0].rotation.x >= -0.3 * Math.PI) {
+                            camera.children[0].rotation.x -= 0.01 * Math.PI;
+                        } else if (currentHandPos == "Hidden" && nextHandPos == "Shown" && camera.children[0].rotation.x <= 0) {
+                            camera.children[0].rotation.x += 0.01 * Math.PI;
+                        }
+                    
+                        world.step(dt);
+
+                        // Update box positions
+                        for(var i=0; i<boxes.length; i++){
+                            boxMeshes[i].position.copy(boxes[i].position);
+                            boxMeshes[i].quaternion.copy(boxes[i].quaternion);
+                        }
+                    }
+                
+                    controls.update( Date.now() - time );
+                    renderer.render( scene, camera );
+                    time = Date.now();
+                    
+            		// measure time
+            		lastTimeMsec = lastTimeMsec || nowMsec - 1000/60;
+            		var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
+            		lastTimeMsec = nowMsec;
+            		// call each update function
+            		updateFcts.forEach(function(updateFn) {
+            			updateFn(deltaMsec/1000, nowMsec/1000);
+            		});
+            	});
+
+            }
+
+            window.addEventListener("click",function(e){
+                if (controls.enabled==true){
+                    if (currentHandPos == "Shown") {
+                        currentHandPos = "Hidden";
+                        nextHandPos = "Shown";
+                    } else if (currentHandPos == "Hidden") {
+                        currentHandPos = "Shown";
+                        nextHandPos = "Hidden";
+                    }
+                }
+            });
+
+        </script>
+    </body>
+</html>
