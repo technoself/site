@@ -293,12 +293,12 @@
                 
                 // prepare loader and load the model
 		var oLoader = new THREE.OBJMTLLoader();
-		oLoader.load('assets/models/room1.obj', 'assets/models/card.mtl', function(object) {
-			object.position.x = 10;
-                	object.position.y = 10;
-                	object.position.z = 10;
-			object.scale.set(10, 10, 10);
-			scene.add(object);
+		oLoader.load('assets/models/room1.obj', 'assets/models/card.mtl', function(room) {
+			room.position.x = 10;
+                	room.position.y = 10;
+                	room.position.z = 10;
+			room.scale.set(10, 10, 10);
+			scene.add(room);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
