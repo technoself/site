@@ -292,13 +292,21 @@
                 ////////////////////
                 
                 // prepare loader and load the model
+		var oLoader = new THREE.OBJMTLLoader();
+		oLoader.load('assets/models/scene1.obj', function(object) {
+			object.position.x = 0;
+                	object.position.y = 0;
+                	object.position.z = 0;
+			object.scale.set(1, 1, 1);
+		});
+			
                 var oLoader = new THREE.OBJMTLLoader();
                 oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(object) {
                     object.position.x = 0.25;
                     object.position.y = 0;
                     object.position.z = -0.55;
-                    object.rotation.x = Math.PI
-                    object.rotation.y = -1.5 * Math.PI
+                    object.rotation.x = Math.PI;
+                    object.rotation.y = -1.5 * Math.PI;
                     object.scale.set(0.1, 0.1, 0.1);
                     object.traverse( function( node ) {
                         if ( node instanceof THREE.Mesh ) {
