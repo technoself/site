@@ -292,13 +292,13 @@
                 ////////////////////
                 
                 // prepare loader and load the model
-		var roomLoader = new THREE.OBJMTLLoader();
-		roomLoader.load('assets/models/room1.obj', 'assets/models/card.mtl', function(room) {
-			room.position.x = 10;
-                	room.position.y = 10;
-                	room.position.z = 10;
-			room.scale.set(10, 10, 10);
-			scene.add(room);
+		var diaryLoader = new THREE.OBJMTLLoader();
+		diaryLoader.load('assets/models/diary.obj', 'assets/models/diary.mtl', function(diary) {
+			diary.position.x = 10;
+                	diary.position.y = 10;
+                	diary.position.z = 10;
+			diary.scale.set(10, 10, 10);
+			scene.add(diary);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
