@@ -292,19 +292,19 @@
                 ////////////////////
                 
                 // prepare loader and load the model
-		var diaryLoader = new THREE.OBJMTLLoader();
-		diaryLoader.load('assets/models/diary.obj', 'assets/models/diary.mtl', function(diary) {
-			diary.position.x = 0;
-                	diary.position.y = 0;
-                	diary.position.z = 0;
-			diary.scale.set(0.1, 0.1, 0.1);
-			diary.traverse( function( node ) {
+		var loader = new THREE.OBJMTLLoader();
+		loader.load('assets/models/terminal.obj', 'assets/models/terminal.mtl', function(terminal) {
+			terminal.position.x = 0;
+                	terminal.position.y = 0;
+                	terminal.position.z = 0;
+			terminal.scale.set(0.1, 0.1, 0.1);
+			terminal.traverse( function( node ) {
 				if ( node instanceof THREE.Mesh ) {
 				    node.geometry.computeVertexNormals(); 
 				    node.material.shininess = 0;
 				}
                     	});
-			camera.add(diary);
+			camera.add(terminal);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
