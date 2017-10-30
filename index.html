@@ -294,10 +294,10 @@
                 // prepare loader and load the model
 		var diaryLoader = new THREE.OBJMTLLoader();
 		diaryLoader.load('assets/models/diary.obj', 'assets/models/diary.mtl', function(diary) {
-			diary.position.x = 10;
-                	diary.position.y = 10;
-                	diary.position.z = 10;
-			diary.scale.set(10, 10, 10);
+			diary.position.x = 0;
+                	diary.position.y = 0;
+                	diary.position.z = 0;
+			diary.scale.set(100, 100, 100);
 			scene.add(diary);
 		});
 			
