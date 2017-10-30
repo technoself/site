@@ -293,18 +293,18 @@
                 
                 // prepare loader and load the model
 		var loader = new THREE.OBJMTLLoader();
-		loader.load('assets/models/terminal.obj', 'assets/models/terminal.mtl', function(terminal) {
-			terminal.position.x = 0;
-                	terminal.position.y = 0;
-                	terminal.position.z = 0;
-			terminal.scale.set(0.1, 0.1, 0.1);
-			terminal.traverse( function( node ) {
+		loader.load('assets/models/uziGold.obj', 'assets/models/uziGold.mtl', function(gun) {
+			gun.position.x = 0;
+                	gun.position.y = 0;
+                	gun.position.z = 0;
+			gun.scale.set(0.1, 0.1, 0.1);
+			gun.traverse( function( node ) {
 				if ( node instanceof THREE.Mesh ) {
 				    node.geometry.computeVertexNormals(); 
 				    node.material.shininess = 0;
 				}
                     	});
-			camera.add(terminal);
+			camera.add(gun);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
