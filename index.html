@@ -304,7 +304,9 @@
 				    node.material.shininess = 0;
 				}
                     	});
-			camera.add(gun);
+			var pivot = new THREE.Object3D();
+                    	pivot.add( camera );
+			camera.add(pivot);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
