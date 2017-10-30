@@ -297,8 +297,14 @@
 			diary.position.x = 0;
                 	diary.position.y = 0;
                 	diary.position.z = 0;
-			diary.scale.set(100, 100, 100);
-			scene.add(diary);
+			diary.scale.set(0.1, 0.1, 0.1);
+			diary.traverse( function( node ) {
+				if ( node instanceof THREE.Mesh ) {
+				    node.geometry.computeVertexNormals(); 
+				    node.material.shininess = 0;
+				}
+                    	});
+			camera.add(diary);
 		});
 			
                 var oLoader = new THREE.OBJMTLLoader();
