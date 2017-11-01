@@ -320,8 +320,8 @@
                     });
                     var pivot = new THREE.Object3D();
                     pivot.add(hand);
+	            camera.add(pivot);
 		});
-                camera.add(pivot);
 
                 var dynamicTexture = new THREEx.DynamicTexture(240, 80)
                 dynamicTexture.context.font = "bolder 45px Courier New";
