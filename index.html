@@ -321,39 +321,40 @@
                     var pivot = new THREE.Object3D();
                     pivot.add(hand);
 	            camera.add(pivot);
+			
+		    var dynamicTexture = new THREEx.DynamicTexture(240, 80)
+                    dynamicTexture.context.font = "bolder 45px Courier New";
+
+                    updateFcts.push(function(delta, now) {
+               	        // build the text which contains the time
+                        var present = new Date()
+                        var text = pad(present.getHours(), 2, '0') +
+                            ':' + pad(present.getMinutes(), 2, '0') +
+                            ':' + pad(present.getSeconds(), 2, '0')
+
+                        function pad(n, width, z) {
+                            z = z || '0';
+                            n = n + '';
+                            return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                        }
+
+                        // update the text
+                        dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
+
+                    });
+
+                    var geometry = new THREE.PlaneGeometry(3, 1, 20);
+                    var material = new THREE.MeshBasicMaterial({
+                        map: dynamicTexture.texture
+                    });
+                    var mesh = new THREE.Mesh(geometry, material);
+                    mesh.scale.set(0.0125, 0.0125, 0.0125);
+                    mesh.position.set(0.2, -0.12, -0.29);
+                    mesh.rotation.z = 0.1 * Math.PI;
+                    mesh.rotation.x = -0.1 * Math.PI;
+                    pivot.add(mesh);
 		});
 
-                var dynamicTexture = new THREEx.DynamicTexture(240, 80)
-                dynamicTexture.context.font = "bolder 45px Courier New";
-
-                updateFcts.push(function(delta, now) {
-               	    // build the text which contains the time
-                    var present = new Date()
-                    var text = pad(present.getHours(), 2, '0') +
-                        ':' + pad(present.getMinutes(), 2, '0') +
-                        ':' + pad(present.getSeconds(), 2, '0')
-
-                    function pad(n, width, z) {
-                        z = z || '0';
-                        n = n + '';
-                        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                    }
-
-                    // update the text
-                    dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
-
-                });
-
-                var geometry = new THREE.PlaneGeometry(3, 1, 20);
-                var material = new THREE.MeshBasicMaterial({
-                    map: dynamicTexture.texture
-                });
-                var mesh = new THREE.Mesh(geometry, material);
-                mesh.scale.set(0.0125, 0.0125, 0.0125);
-                mesh.position.set(0.2, -0.12, -0.29);
-                mesh.rotation.z = 0.1 * Math.PI;
-                mesh.rotation.x = -0.1 * Math.PI;
-                pivot.add(mesh);
                 ////////////////////
 
                 controls = new PointerLockControls(camera, sphereBody);
