@@ -278,18 +278,18 @@
 
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
-		oLoader.load('assets/models/uziGold.obj', 'assets/models/uziGold.mtl', function(card) {
-		    card.position.x = 0;
-                    card.position.y = 0;
-                    card.position.z = 0;
-		    card.scale.set(1000, 1000, 1000);
-		    card.traverse(function(node) {
+		oLoader.load('assets/models/terminal.obj', 'assets/models/terminal.mtl', function(terminal) {
+		    terminal.position.x = 0;
+                    terminal.position.y = 0;
+                    terminal.position.z = 0;
+		    terminal.scale.set(1000, 1000, 1000);
+		    terminal.traverse(function(node) {
                         if (node instanceof THREE.Mesh) {
                             node.geometry.computeVertexNormals();
                             node.material.shininess = 0;
                         }
                     });
-		    scene.add(card);
+		    scene.add(terminal);
 		});
                 oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(hand) {
                     hand.position.x = 0.25;
