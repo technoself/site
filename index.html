@@ -278,19 +278,19 @@
 
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
-		oLoader.load('assets/models/diary.obj', 'assets/models/diary.mtl', function(diary) {
-		    diary.position.x = 0;
-                    diary.position.y = 0.25;
-                    diary.position.z = 0;
-		    diary.rotation.z = Math.PI;
-		    diary.scale.set(0.01, 0.01, 0.01);
-		    diary.traverse(function(node) {
+		oLoader.load('assets/models/room.obj', 'assets/models/diary.mtl', function(room) {
+		    room.position.x = 0;
+                    room.position.y = 0.25;
+                    room.position.z = 0;
+		    room.rotation.z = Math.PI;
+		    room.scale.set(0.01, 0.01, 0.01);
+		    room.traverse(function(node) {
                         if (node instanceof THREE.Mesh) {
                             node.geometry.computeVertexNormals();
                             node.material.shininess = 0;
                         }
                     });
-		    scene.add(diary);
+		    scene.add(room);
 		});
                 oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(hand) {
                     hand.position.x = 0.25;
