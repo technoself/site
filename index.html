@@ -76,31 +76,35 @@
 
         <script>
 
-            var sphereShape, sphereBody, world, physicsMaterial, walls=[], balls=[], ballMeshes=[], boxes=[], boxMeshes=[];
+            var sphereShape, sphereBody, world, physicsMaterial, walls = [],
+                balls = [],
+                ballMeshes = [],
+                boxes = [],
+                boxMeshes = [];
 
             var camera, scene, renderer;
             var geometry, material, mesh;
-            var controls,time = Date.now();
-            
-            var updateFcts	= [];
-            
-            var blocker = document.getElementById( 'blocker' );
-            var instructions = document.getElementById( 'instructions' );
-            
+            var controls, time = Date.now();
+
+            var updateFcts = [];
+
+            var blocker = document.getElementById('blocker');
+            var instructions = document.getElementById('instructions');
+
             var currentHandPos = "Shown";
             var nextHandPos = "Hidden";
-            
+
             var meshes = {};
-            
+
             var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
-            if ( havePointerLock ) {
+            if (havePointerLock) {
 
                 var element = document.body;
 
-                var pointerlockchange = function ( event ) {
+                var pointerlockchange = function(event) {
 
-                    if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+                    if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
 
                         controls.enabled = true;
 
@@ -120,41 +124,41 @@
 
                 }
 
-                var pointerlockerror = function ( event ) {
+                var pointerlockerror = function(event) {
                     instructions.style.display = '';
                 }
 
                 // Hook pointer lock state change events
-                document.addEventListener( 'pointerlockchange', pointerlockchange, false );
-                document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
-                document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
+                document.addEventListener('pointerlockchange', pointerlockchange, false);
+                document.addEventListener('mozpointerlockchange', pointerlockchange, false);
+                document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
 
-                document.addEventListener( 'pointerlockerror', pointerlockerror, false );
-                document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
-                document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+                document.addEventListener('pointerlockerror', pointerlockerror, false);
+                document.addEventListener('mozpointerlockerror', pointerlockerror, false);
+                document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
 
-                instructions.addEventListener( 'click', function ( event ) {
+                instructions.addEventListener('click', function(event) {
                     instructions.style.display = 'none';
 
                     // Ask the browser to lock the pointer
                     element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
 
-                    if ( /Firefox/i.test( navigator.userAgent ) ) {
+                    if (/Firefox/i.test(navigator.userAgent)) {
 
-                        var fullscreenchange = function ( event ) {
+                        var fullscreenchange = function(event) {
 
-                            if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+                            if (document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element) {
 
-                                document.removeEventListener( 'fullscreenchange', fullscreenchange );
-                                document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+                                document.removeEventListener('fullscreenchange', fullscreenchange);
+                                document.removeEventListener('mozfullscreenchange', fullscreenchange);
 
                                 element.requestPointerLock();
                             }
 
                         }
 
-                        document.addEventListener( 'fullscreenchange', fullscreenchange, false );
-                        document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+                        document.addEventListener('fullscreenchange', fullscreenchange, false);
+                        document.addEventListener('mozfullscreenchange', fullscreenchange, false);
 
                         element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
 
@@ -166,7 +170,7 @@
 
                     }
 
-                }, false );
+                }, false);
 
             } else {
 
@@ -178,7 +182,7 @@
             init();
             animate();
 
-            function initCannon(){
+            function initCannon() {
                 // Setup our world
                 world = new CANNON.World();
                 world.quatNormalizeSkip = 0;
@@ -197,183 +201,193 @@
                 else
                     world.solver = solver;
 
-                world.gravity.set(0,-20,0);
+                world.gravity.set(0, -20, 0);
                 world.broadphase = new CANNON.NaiveBroadphase();
 
                 // Create a slippery material (friction coefficient = 0.0)
                 physicsMaterial = new CANNON.Material("slipperyMaterial");
                 var physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial,
-                                                                        physicsMaterial,
-                                                                        0.0, // friction coefficient
-                                                                        0.3  // restitution
-                                                                        );
+                    physicsMaterial,
+                    0.0, // friction coefficient
+                    0.3 // restitution
+                );
                 // We must add the contact materials to the world
                 world.addContactMaterial(physicsContactMaterial);
 
                 // Create a sphere
-                var mass = 5, radius = 1.3;
+                var mass = 5,
+                    radius = 1.3;
                 sphereShape = new CANNON.Sphere(radius);
-                sphereBody = new CANNON.Body({ mass: mass });
+                sphereBody = new CANNON.Body({
+                    mass: mass
+                });
                 sphereBody.addShape(sphereShape);
-                sphereBody.position.set(0,5,0);
+                sphereBody.position.set(0, 5, 0);
                 sphereBody.linearDamping = 0.9;
                 world.addBody(sphereBody);
 
                 // Create a plane
                 var groundShape = new CANNON.Plane();
-                var groundBody = new CANNON.Body({ mass: 0 });
+                var groundBody = new CANNON.Body({
+                    mass: 0
+                });
                 groundBody.addShape(groundShape);
-                groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+                groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
                 world.addBody(groundBody);
             }
 
             function init() {
-                
-                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
                 scene = new THREE.Scene();
-                scene.fog = new THREE.Fog( 0x000000, 0, 500 );
+                scene.fog = new THREE.Fog(0x000000, 0, 500);
 
-                var ambient = new THREE.AmbientLight( 0x111111 );
-                scene.add( ambient );
+                var ambient = new THREE.AmbientLight(0x111111);
+                scene.add(ambient);
 
-                var light1 = new THREE.SpotLight( 0xffffff, 2);
-                light1.position.set( 0, 25, 0 );
-                light1.target.position.set( 0, 0, 0 );
-                if(true){
+                var light1 = new THREE.SpotLight(0xffffff, 2);
+                light1.position.set(0, 25, 0);
+                light1.target.position.set(0, 0, 0);
+                if (true) {
                     light1.castShadow = true;
 
                     light1.shadowCameraNear = 10;
-                    light1.shadowCameraFar = 25;//camera.far;
+                    light1.shadowCameraFar = 25; //camera.far;
                     light1.shadowCameraFov = 112.5;
 
                     light1.shadowMapBias = 0.1;
                     light1.shadowMapDarkness = 0.7;
-                    light1.shadowMapWidth = 2*512;
-                    light1.shadowMapHeight = 2*512;
+                    light1.shadowMapWidth = 2 * 512;
+                    light1.shadowMapHeight = 2 * 512;
 
                     //light1.shadowCameraVisible = true;
                 }
-                scene.add( light1 );
-                
-                var geometry = new THREE.PlaneGeometry( 30, 15, 20 );
-                var material = new THREE.MeshPhongMaterial( {color: 0x34548b, side: THREE.DoubleSide} );
-                var plane1 = new THREE.Mesh( geometry, material );
-                var plane2 = new THREE.Mesh( geometry, material );
-                var plane3 = new THREE.Mesh( geometry, material );
-                var plane4 = new THREE.Mesh( geometry, material );
-                
+                scene.add(light1);
+
+                var geometry = new THREE.PlaneGeometry(30, 15, 20);
+                var material = new THREE.MeshPhongMaterial({
+                    color: 0x34548b,
+                    side: THREE.DoubleSide
+                });
+                var plane1 = new THREE.Mesh(geometry, material);
+                var plane2 = new THREE.Mesh(geometry, material);
+                var plane3 = new THREE.Mesh(geometry, material);
+                var plane4 = new THREE.Mesh(geometry, material);
+
                 plane1.position.z = -15;
                 plane2.position.z = 15;
                 plane3.position.x = -15;
-                plane3.rotation.y = Math.PI/2;
+                plane3.rotation.y = Math.PI / 2;
                 plane3.position.y = 7.5;
                 plane4.position.y = 7.5;
                 plane1.position.y = 7.5;
                 plane2.position.y = 7.5;
-                plane4.rotation.y = Math.PI/2;
+                plane4.rotation.y = Math.PI / 2;
                 plane4.position.x = 15;
-                scene.add( plane1 );
-                scene.add( plane2 );
-                scene.add( plane3 );
-                scene.add( plane4 );
-                
-                
-                
+                scene.add(plane1);
+                scene.add(plane2);
+                scene.add(plane3);
+                scene.add(plane4);
+
+
+
                 var sphere = new THREE.Mesh(
                     new THREE.SphereGeometry(100, 32, 32),
                     new THREE.MeshBasicMaterial({
-                        map: THREE.ImageUtils.loadTexture('assets/images/space2.jpg')
+                        map: THREE.ImageUtils.loadTexture('assets/images/sky.jpg')
                     })
                 );
                 sphere.scale.x = -1;
                 scene.add(sphere);
-                
+
                 ////////////////////
-                
+
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
-                oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(object) {
-                    object.position.x = 0.25;
-                    object.position.y = 0;
-                    object.position.z = -0.55;
-                    object.rotation.x = Math.PI;
-                    object.rotation.y = -1.5 * Math.PI;
-                    object.scale.set(0.1, 0.1, 0.1);
-                    object.traverse( function( node ) {
-                        if ( node instanceof THREE.Mesh ) {
-                            node.geometry.computeVertexNormals(); 
+                oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(hand) {
+                    hand.position.x = 0.25;
+                    hand.position.y = 0;
+                    hand.position.z = -0.55;
+                    hand.rotation.x = Math.PI;
+                    hand.rotation.y = -1.5 * Math.PI;
+                    hand.scale.set(0.1, 0.1, 0.1);
+                    hand.traverse(function(node) {
+                        if (node instanceof THREE.Mesh) {
+                            node.geometry.computeVertexNormals();
                             node.material.shininess = 0;
                         }
                     });
                     var pivot = new THREE.Object3D();
-                    pivot.add( object );
-                    camera.add(pivot);
-                    
-                    var dynamicTexture  = new THREEx.DynamicTexture(240,80)
-                	dynamicTexture.context.font	= "bolder 45px Courier New";
-                    
-                    updateFcts.push(function(delta, now){
-                    	// build the text which contains the time
-                    	var present	= new Date()
-                    	var text	= pad(present.getHours(), 2, '0')
-                    		+ ':' + pad(present.getMinutes(), 2, '0')
-                    		+ ':' + pad(present.getSeconds(), 2, '0')
-                    	function pad(n, width, z) {
-                    		z = z || '0';
-                    		n = n + '';
-                    		return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                    	}
+                    pivot.add(hand);
+		});
+                camera.add(pivot);
 
-                    	// update the text
-                    	dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
+                var dynamicTexture = new THREEx.DynamicTexture(240, 80)
+                dynamicTexture.context.font = "bolder 45px Courier New";
 
-                	});
-                    
-                    var geometry = new THREE.PlaneGeometry( 3, 1, 20);
-                    var material = new THREE.MeshBasicMaterial({
-                        map : dynamicTexture.texture
-                    });
-                    var mesh = new THREE.Mesh( geometry, material );
-                    mesh.scale.set(0.0125, 0.0125, 0.0125);
-                    mesh.position.set(0.2, -0.12, -0.29);
-                    mesh.rotation.z = 0.1 * Math.PI;
-                    mesh.rotation.x = -0.1 * Math.PI;
-                    pivot.add( mesh );
-                
+                updateFcts.push(function(delta, now) {
+               	    // build the text which contains the time
+                    var present = new Date()
+                    var text = pad(present.getHours(), 2, '0') +
+                        ':' + pad(present.getMinutes(), 2, '0') +
+                        ':' + pad(present.getSeconds(), 2, '0')
+
+                    function pad(n, width, z) {
+                        z = z || '0';
+                        n = n + '';
+                        return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                    }
+
+                    // update the text
+                    dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
+
                 });
+
+                var geometry = new THREE.PlaneGeometry(3, 1, 20);
+                var material = new THREE.MeshBasicMaterial({
+                    map: dynamicTexture.texture
+                });
+                var mesh = new THREE.Mesh(geometry, material);
+                mesh.scale.set(0.0125, 0.0125, 0.0125);
+                mesh.position.set(0.2, -0.12, -0.29);
+                mesh.rotation.z = 0.1 * Math.PI;
+                mesh.rotation.x = -0.1 * Math.PI;
+                pivot.add(mesh);
                 ////////////////////
-                
-                controls = new PointerLockControls( camera , sphereBody );
-                scene.add( controls.getObject() );
+
+                controls = new PointerLockControls(camera, sphereBody);
+                scene.add(controls.getObject());
 
                 // floor
-                geometry = new THREE.PlaneGeometry( 30, 30, 10, 10 );
-                geometry.applyMatrix( new THREE.Matrix4().makeRotationX( - Math.PI / 2 ) );
+                geometry = new THREE.PlaneGeometry(30, 30, 10, 10);
+                geometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI / 2));
 
-                material = new THREE.MeshLambertMaterial( { color: 0x404040 } );
+                material = new THREE.MeshLambertMaterial({
+                    color: 0x404040
+                });
 
-                mesh = new THREE.Mesh( geometry, material );
+                mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
-                scene.add( mesh );
+                scene.add(mesh);
 
                 renderer = new THREE.WebGLRenderer();
                 renderer.shadowMapEnabled = true;
                 renderer.shadowMapSoft = true;
-                renderer.setSize( window.innerWidth, window.innerHeight );
-                renderer.setClearColor( scene.fog.color, 1 );
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setClearColor(scene.fog.color, 1);
 
-                document.body.appendChild( renderer.domElement );
+                document.body.appendChild(renderer.domElement);
 
-                window.addEventListener( 'resize', onWindowResize, false );
-                
-            	loadingManager = new THREE.LoadingManager();
-                loadingManager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-                	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+                window.addEventListener('resize', onWindowResize, false);
+
+                loadingManager = new THREE.LoadingManager();
+                loadingManager.onProgress = function(url, itemsLoaded, itemsTotal) {
+                    console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
                 };
-                loadingManager.onLoad = function () {
-                	console.log( 'Loading complete!');
+                loadingManager.onLoad = function() {
+                    console.log('Loading complete!');
                     RESOURCES_LOADED = true;
                     onResourcesLoaded();
                 };
@@ -382,51 +396,52 @@
             function onWindowResize() {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
-                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setSize(window.innerWidth, window.innerHeight);
             }
-            
-            var dt = 1/60;
+
+            var dt = 1 / 60;
+
             function animate() {
-                
-                var lastTimeMsec= null;
-            	requestAnimationFrame(function animate(nowMsec) {
-            		// keep looping
-            		requestAnimationFrame( animate );
-                    
-                    if (controls.enabled){
+
+                var lastTimeMsec = null;
+                requestAnimationFrame(function animate(nowMsec) {
+                    // keep looping
+                    requestAnimationFrame(animate);
+
+                    if (controls.enabled) {
                         if (currentHandPos == "Shown" && nextHandPos == "Hidden" && camera.children[0].rotation.x >= -0.3 * Math.PI) {
                             camera.children[0].rotation.x -= 0.01 * Math.PI;
                         } else if (currentHandPos == "Hidden" && nextHandPos == "Shown" && camera.children[0].rotation.x <= 0) {
                             camera.children[0].rotation.x += 0.01 * Math.PI;
                         }
-                    
+
                         world.step(dt);
 
                         // Update box positions
-                        for(var i=0; i<boxes.length; i++){
+                        for (var i = 0; i < boxes.length; i++) {
                             boxMeshes[i].position.copy(boxes[i].position);
                             boxMeshes[i].quaternion.copy(boxes[i].quaternion);
                         }
                     }
-                
-                    controls.update( Date.now() - time );
-                    renderer.render( scene, camera );
+
+                    controls.update(Date.now() - time);
+                    renderer.render(scene, camera);
                     time = Date.now();
-                    
-            		// measure time
-            		lastTimeMsec = lastTimeMsec || nowMsec - 1000/60;
-            		var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
-            		lastTimeMsec = nowMsec;
-            		// call each update function
-            		updateFcts.forEach(function(updateFn) {
-            			updateFn(deltaMsec/1000, nowMsec/1000);
-            		});
-            	});
+
+                    // measure time
+                    lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
+                    var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
+                    lastTimeMsec = nowMsec;
+                    // call each update function
+                    updateFcts.forEach(function(updateFn) {
+                        updateFn(deltaMsec / 1000, nowMsec / 1000);
+                    });
+                });
 
             }
 
-            window.addEventListener("click",function(e){
-                if (controls.enabled==true){
+            window.addEventListener("click", function(e) {
+                if (controls.enabled == true) {
                     if (currentHandPos == "Shown") {
                         currentHandPos = "Hidden";
                         nextHandPos = "Shown";
@@ -436,6 +451,7 @@
                     }
                 }
             });
+
 
         </script>
     </body>
