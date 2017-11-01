@@ -283,7 +283,7 @@
                     terminal.position.y = 0;
                     terminal.position.z = 0;
 		    terminal.rotation.y = Math.PI;
-		    terminal.scale.set(0.001, 0.001, 0.001);
+		    terminal.scale.set(0.01, 0.01, 0.01);
 		    terminal.traverse(function(node) {
                         if (node instanceof THREE.Mesh) {
                             node.geometry.computeVertexNormals();
