@@ -280,7 +280,7 @@
                 var oLoader = new THREE.OBJMTLLoader();
         		oLoader.load('assets/models/nightstand.obj', 'assets/models/diary.mtl', function(nightstand) {
         		    nightstand.position.x = 0;
-                    nightstand.position.y = 0.5;
+                    nightstand.position.y = 1;
                     nightstand.position.z = 0;
         		    nightstand.rotation.z = Math.PI;
         		    nightstand.scale.set(0.01, 0.01, 0.01);
@@ -290,26 +290,6 @@
                                     node.material.shininess = 0;
                                 }
                             });
-                    // Add boxes
-                    var halfExtents = new CANNON.Vec3(1,1,1);
-                    var boxShape = new CANNON.Box(halfExtents);
-                    var boxGeometry = nightstand;
-                    for(var i=0; i<7; i++){
-                        var x = (Math.random()-0.5)*20;
-                        var y = 1 + (Math.random()-0.5)*1;
-                        var z = (Math.random()-0.5)*20;
-                        var boxBody = new CANNON.Body({ mass: 50 });
-                        boxBody.addShape(boxShape);
-                        var boxMesh = new THREE.Mesh( boxGeometry, material );
-                        world.addBody(boxBody);
-                        scene.add(boxMesh);
-                        boxBody.position.set(x,y,z);
-                        boxMesh.position.set(x,y,z);
-                        boxMesh.castShadow = true;
-                        boxMesh.receiveShadow = true;
-                        boxes.push(boxBody);
-                        boxMeshes.push(boxMesh);
-                    }
         		    scene.add(nightstand);
         		});
         		oLoader.load('assets/models/card.obj', 'assets/models/card.mtl', function(card) {
