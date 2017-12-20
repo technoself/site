@@ -314,19 +314,19 @@
 
                     updateFcts.push(function(delta, now) {
                	        // build the text which contains the time
-                        var present = new Date()
-                        var text = pad(present.getHours(), 2, '0') +
-                            ':' + pad(present.getMinutes(), 2, '0') +
-                            ':' + pad(present.getSeconds(), 2, '0')
+                        //var present = new Date()
+                        //var text = pad(present.getHours(), 2, '0') +
+                        //    ':' + pad(present.getMinutes(), 2, '0') +
+                        //    ':' + pad(present.getSeconds(), 2, '0')
 
-                        function pad(n, width, z) {
-                            z = z || '0';
-                            n = n + '';
-                            return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-                        }
+                        //function pad(n, width, z) {
+                        //    z = z || '0';
+                        //    n = n + '';
+                        //    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+                        //}
 
                         // update the text
-                        dynamicTexture.clear('black').drawText(text, undefined, 55, 'green')
+                        dynamicTexture.clear('black').drawText("14,186", undefined, 55, 'green')
 
                     });
 
