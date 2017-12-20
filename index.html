@@ -278,7 +278,7 @@
 
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
-        		oLoader.load('assets/models/nightstand.obj', 'assets/models/diary.mtl', function(nightstand) {
+        		oLoader.load('assets/models/nightstand.obj', 'assets/models/default.mtl', function(nightstand) {
         		    nightstand.position.x = 0;
                     nightstand.position.y = 0;
                     nightstand.position.z = 0;
@@ -291,19 +291,18 @@
                             });
         		    scene.add(nightstand);
         		});
-        		oLoader.load('assets/models/card.obj', 'assets/models/card.mtl', function(card) {
-        		    card.position.x = 2;
-                    card.position.y = 0.5;
-                    card.position.z = 2;
-        		    card.rotation.z = Math.PI;
-        		    card.scale.set(0.01, 0.01, 0.01);
-        		    card.traverse(function(node) {
+        		oLoader.load('assets/models/bed.obj', 'assets/models/default.mtl', function(bed) {
+        		    bed.position.x = 2;
+                    bed.position.y = 3;
+                    bed.position.z = 2;
+        		    bed.scale.set(0.01, 0.01, 0.01);
+        		    bed.traverse(function(node) {
                                 if (node instanceof THREE.Mesh) {
                                     node.geometry.computeVertexNormals();
                                     node.material.shininess = 0;
                                 }
                             });
-        		    scene.add(card);
+        		    scene.add(bed);
         		});
                 oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(hand) {
                     hand.position.x = 0.25;
