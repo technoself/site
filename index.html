@@ -265,14 +265,14 @@
                 }
                 scene.add(light1);
 		
-                var sphere = new THREE.Mesh(
-                    new THREE.SphereGeometry(100, 32, 32),
-                    new THREE.MeshBasicMaterial({
-                        map: THREE.ImageUtils.loadTexture('assets/images/sky.jpg')
-                    })
-                );
-                sphere.scale.y = -1;
-                scene.add(sphere);
+                //var sphere = new THREE.Mesh(
+                //    new THREE.SphereGeometry(100, 32, 32),
+                //    new THREE.MeshBasicMaterial({
+                //        map: THREE.ImageUtils.loadTexture('assets/images/sky.jpg')
+                //    })
+                    //);
+                //sphere.scale.y = -1;
+                //scene.add(sphere);
 
                 ////////////////////
 
@@ -383,7 +383,28 @@
                 document.body.appendChild(renderer.domElement);
 
                 window.addEventListener('resize', onWindowResize, false);
-
+                
+                // Add boxes
+                var halfExtents = new CANNON.Vec3(1,1,1);
+                var boxShape = new CANNON.Box(halfExtents);
+                var boxGeometry = new THREE.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
+                for(var i=0; i<7; i++){
+                    var x = (Math.random()-0.5)*20;
+                    var y = 1 + (Math.random()-0.5)*1;
+                    var z = (Math.random()-0.5)*20;
+                    var boxBody = new CANNON.Body({ mass: 5 });
+                    boxBody.addShape(boxShape);
+                    var boxMesh = new THREE.Mesh( boxGeometry, material );
+                    world.addBody(boxBody);
+                    scene.add(boxMesh);
+                    boxBody.position.set(x,y,z);
+                    boxMesh.position.set(x,y,z);
+                    boxMesh.castShadow = true;
+                    boxMesh.receiveShadow = true;
+                    boxes.push(boxBody);
+                    boxMeshes.push(boxMesh);
+                }
+                
                 loadingManager = new THREE.LoadingManager();
                 loadingManager.onProgress = function(url, itemsLoaded, itemsTotal) {
                     console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
