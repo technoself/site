@@ -279,9 +279,9 @@
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
         		oLoader.load('assets/models/nightstand.obj', 'assets/models/default.mtl', function(nightstand) {
-        		    nightstand.position.x = 2.25;
+        		    nightstand.position.x = 2.5;
                     nightstand.position.y = 0;
-                    nightstand.position.z = 0.25;
+                    nightstand.position.z = 0.5;
         		    nightstand.scale.set(-0.01, 0.01, -0.01);
         		    scene.add(nightstand);
         		});
