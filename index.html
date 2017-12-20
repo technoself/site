@@ -392,7 +392,7 @@
                     var x = (Math.random()-0.5)*20;
                     var y = 1 + (Math.random()-0.5)*1;
                     var z = (Math.random()-0.5)*20;
-                    var boxBody = new CANNON.Body({ mass: 5 });
+                    var boxBody = new CANNON.Body({ mass: 20 });
                     boxBody.addShape(boxShape);
                     var boxMesh = new THREE.Mesh( boxGeometry, material );
                     world.addBody(boxBody);
