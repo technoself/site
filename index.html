@@ -292,10 +292,10 @@
         		    scene.add(nightstand);
         		});
         		oLoader.load('assets/models/bed.obj', 'assets/models/default.mtl', function(bed) {
-        		    bed.position.x = 0;
+        		    bed.position.x = -1;
                     bed.position.y = 0;
                     bed.position.z = 2;
-        		    bed.scale.set(0.00075, 0.00075, 0.00075);
+        		    bed.scale.set(0.0005, 0.0005, 0.0005);
         		    bed.traverse(function(node) {
                                 if (node instanceof THREE.Mesh) {
                                     node.geometry.computeVertexNormals();
