@@ -280,7 +280,7 @@
                 var oLoader = new THREE.OBJMTLLoader();
         		oLoader.load('assets/models/nightstand.obj', 'assets/models/diary.mtl', function(nightstand) {
         		    nightstand.position.x = 0;
-                    nightstand.position.y = 1;
+                    nightstand.position.y = 0;
                     nightstand.position.z = 0;
         		    nightstand.scale.set(0.01, 0.01, 0.01);
         		    nightstand.traverse(function(node) {
