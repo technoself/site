@@ -278,34 +278,54 @@
 
                 // prepare loader and load the model
                 var oLoader = new THREE.OBJMTLLoader();
-		oLoader.load('assets/models/diary.obj', 'assets/models/diary.mtl', function(diary) {
-		    diary.position.x = 0;
-                    diary.position.y = 0.5;
-                    diary.position.z = 0;
-		    diary.rotation.z = Math.PI;
-		    diary.scale.set(0.01, 0.01, 0.01);
-		    diary.traverse(function(node) {
-                        if (node instanceof THREE.Mesh) {
-                            node.geometry.computeVertexNormals();
-                            node.material.shininess = 0;
-                        }
-                    });
-		    scene.add(diary);
-		});
-		oLoader.load('assets/models/card.obj', 'assets/models/card.mtl', function(card) {
-		    card.position.x = 2;
+        		oLoader.load('assets/models/nightstand.obj', 'assets/models/diary.mtl', function(nightstand) {
+        		    nightstand.position.x = 0;
+                    nightstand.position.y = 0.5;
+                    nightstand.position.z = 0;
+        		    nightstand.rotation.z = Math.PI;
+        		    nightstand.scale.set(0.01, 0.01, 0.01);
+        		    nightstand.traverse(function(node) {
+                                if (node instanceof THREE.Mesh) {
+                                    node.geometry.computeVertexNormals();
+                                    node.material.shininess = 0;
+                                }
+                            });
+                    // Add boxes
+                    var halfExtents = new CANNON.Vec3(1,1,1);
+                    var boxShape = new CANNON.Box(halfExtents);
+                    var boxGeometry = nightstand;
+                    for(var i=0; i<7; i++){
+                        var x = (Math.random()-0.5)*20;
+                        var y = 1 + (Math.random()-0.5)*1;
+                        var z = (Math.random()-0.5)*20;
+                        var boxBody = new CANNON.Body({ mass: 50 });
+                        boxBody.addShape(boxShape);
+                        var boxMesh = new THREE.Mesh( boxGeometry, material );
+                        world.addBody(boxBody);
+                        scene.add(boxMesh);
+                        boxBody.position.set(x,y,z);
+                        boxMesh.position.set(x,y,z);
+                        boxMesh.castShadow = true;
+                        boxMesh.receiveShadow = true;
+                        boxes.push(boxBody);
+                        boxMeshes.push(boxMesh);
+                    }
+        		    scene.add(nightstand);
+        		});
+        		oLoader.load('assets/models/card.obj', 'assets/models/card.mtl', function(card) {
+        		    card.position.x = 2;
                     card.position.y = 0.5;
                     card.position.z = 2;
-		    card.rotation.z = Math.PI;
-		    card.scale.set(0.01, 0.01, 0.01);
-		    card.traverse(function(node) {
-                        if (node instanceof THREE.Mesh) {
-                            node.geometry.computeVertexNormals();
-                            node.material.shininess = 0;
-                        }
-                    });
-		    scene.add(card);
-		});
+        		    card.rotation.z = Math.PI;
+        		    card.scale.set(0.01, 0.01, 0.01);
+        		    card.traverse(function(node) {
+                                if (node instanceof THREE.Mesh) {
+                                    node.geometry.computeVertexNormals();
+                                    node.material.shininess = 0;
+                                }
+                            });
+        		    scene.add(card);
+        		});
                 oLoader.load('assets/models/hand.obj', 'assets/models/hand.mtl', function(hand) {
                     hand.position.x = 0.25;
                     hand.position.y = 0;
@@ -383,27 +403,6 @@
                 document.body.appendChild(renderer.domElement);
 
                 window.addEventListener('resize', onWindowResize, false);
-                
-                // Add boxes
-                var halfExtents = new CANNON.Vec3(1,1,1);
-                var boxShape = new CANNON.Box(halfExtents);
-                var boxGeometry = new THREE.BoxGeometry(halfExtents.x*2,halfExtents.y*2,halfExtents.z*2);
-                for(var i=0; i<7; i++){
-                    var x = (Math.random()-0.5)*20;
-                    var y = 1 + (Math.random()-0.5)*1;
-                    var z = (Math.random()-0.5)*20;
-                    var boxBody = new CANNON.Body({ mass: 20 });
-                    boxBody.addShape(boxShape);
-                    var boxMesh = new THREE.Mesh( boxGeometry, material );
-                    world.addBody(boxBody);
-                    scene.add(boxMesh);
-                    boxBody.position.set(x,y,z);
-                    boxMesh.position.set(x,y,z);
-                    boxMesh.castShadow = true;
-                    boxMesh.receiveShadow = true;
-                    boxes.push(boxBody);
-                    boxMeshes.push(boxMesh);
-                }
                 
                 loadingManager = new THREE.LoadingManager();
                 loadingManager.onProgress = function(url, itemsLoaded, itemsTotal) {
